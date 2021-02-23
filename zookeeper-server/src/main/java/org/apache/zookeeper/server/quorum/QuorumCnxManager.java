@@ -376,15 +376,15 @@ public class QuorumCnxManager {
         try {
             LOG.debug("Opening channel to server {}", sid);
             if (self.isSslQuorum()) {
-                sock = self.getX509Util().createSSLSocket();
-            } else {
+                sock = self.getX509Util().createSSLSocket();//创建SSL认证的socket
+           } else {
                 sock = SOCKET_FACTORY.get();
             }
             setSockOpts(sock);
             sock.connect(electionAddr.getReachableOrOne(), cnxTO);
             if (sock instanceof SSLSocket) {
                 SSLSocket sslSock = (SSLSocket) sock;
-                sslSock.startHandshake();
+                sslSock.startHandshake();//socket 握手
                 LOG.info("SSL handshake complete with {} - {} - {}",
                          sslSock.getRemoteSocketAddress(),
                          sslSock.getSession().getProtocol(),
@@ -427,6 +427,7 @@ public class QuorumCnxManager {
             return true;
         }
         try {
+            //执行链接请求线程
             connectionExecutor.execute(new QuorumConnectionReqThread(electionAddr, sid));
             connectionThreadCnt.incrementAndGet();
         } catch (Throwable e) {
@@ -453,7 +454,7 @@ public class QuorumCnxManager {
         }
 
         @Override
-        public void run() {
+        public void run() {//链接请求线程run
             try {
                 initiateConnection(electionAddr, sid);
             } finally {
@@ -462,7 +463,7 @@ public class QuorumCnxManager {
         }
 
     }
-
+     //开始链接
     private boolean startConnection(Socket sock, Long sid) throws IOException {
         DataOutputStream dout = null;
         DataInputStream din = null;
@@ -470,6 +471,7 @@ public class QuorumCnxManager {
         try {
             // Use BufferedOutputStream to reduce the number of IP packets. This is
             // important for x-DC scenarios.
+            //使用 BufferedOutputStream 减少数据量
             BufferedOutputStream buf = new BufferedOutputStream(sock.getOutputStream());
             dout = new DataOutputStream(buf);
 
@@ -510,11 +512,14 @@ public class QuorumCnxManager {
         }
 
         // If lost the challenge, then drop the new connection
+        //如果自己id<要链接的服务器id关闭socket
+        //zookeeper只能大的id 链接 小的Id
         if (sid > self.getId()) {
             LOG.info("Have smaller server identifier, so dropping the connection: (myId:{} --> sid:{})", self.getId(), sid);
             closeSocket(sock);
             // Otherwise proceed with the connection
         } else {
+            //建立连接后 开始发送和接收消息
             LOG.debug("Have larger server identifier, so keeping the connection: (myId:{} --> sid:{})", self.getId(), sid);
             SendWorker sw = new SendWorker(sock, sid);
             RecvWorker rw = new RecvWorker(sock, din, sid, sw);
@@ -730,6 +735,7 @@ public class QuorumCnxManager {
         // we are doing connection initiation always asynchronously, since it is possible that
         // the socket connection timeouts or the SSL handshake takes too long and don't want
         // to keep the rest of the connections to wait
+        //异步链接 其他服务器
         return initiateConnectionAsync(electionAddr, sid);
     }
 
@@ -746,6 +752,7 @@ public class QuorumCnxManager {
                 // since ZOOKEEPER-3188 we can use multiple election addresses to reach a server. It is possible, that the
                 // one we are using is already dead and we need to clean-up, so when we will create a new connection
                 // then we will choose an other one, which is actually reachable
+                //选择可以访问的链接 reachable：可达
                 senderWorkerMap.get(sid).asyncValidateIfSocketIsStillReachable();
             }
             return;
@@ -789,6 +796,7 @@ public class QuorumCnxManager {
 
     public void connectAll() {
         long sid;
+        //for 循环与每台服务器建立连接
         for (Enumeration<Long> en = queueSendMap.keys(); en.hasMoreElements(); ) {
             sid = en.nextElement();
             connectOne(sid);

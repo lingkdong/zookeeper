@@ -1108,7 +1108,7 @@ public class Leader extends LearnerMaster {
 
     /**
      * send a packet to all the followers ready to follow
-     *
+     * 发送到所有 follow 节点
      * @param qp
      *                the packet to be sent
      */

@@ -30,12 +30,12 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 /**
  * This class implements a validator for majority quorums. The implementation is
  * straightforward.
- *
+ * 仲裁验证器
  */
 public class QuorumMaj implements QuorumVerifier {
 
     private Map<Long, QuorumServer> allMembers = new HashMap<Long, QuorumServer>();
-    private Map<Long, QuorumServer> votingMembers = new HashMap<Long, QuorumServer>();
+    private Map<Long, QuorumServer> votingMembers = new HashMap<Long, QuorumServer>();//投票会员数
     private Map<Long, QuorumServer> observingMembers = new HashMap<Long, QuorumServer>();
     private long version = 0;
     private int half;
@@ -78,6 +78,7 @@ public class QuorumMaj implements QuorumVerifier {
                 observingMembers.put(Long.valueOf(qs.id), qs);
             }
         }
+        //构造函数 赋值 half大小
         half = votingMembers.size() / 2;
     }
 
@@ -100,6 +101,7 @@ public class QuorumMaj implements QuorumVerifier {
                 version = Long.parseLong(value, 16);
             }
         }
+        //构造函数 赋值 half大小
         half = votingMembers.size() / 2;
     }
 
@@ -132,6 +134,7 @@ public class QuorumMaj implements QuorumVerifier {
     /**
      * Verifies if a set is a majority. Assumes that ackSet contains acks only
      * from votingMembers
+     * 投票数是否 大于half
      */
     public boolean containsQuorum(Set<Long> ackSet) {
         return (ackSet.size() > half);

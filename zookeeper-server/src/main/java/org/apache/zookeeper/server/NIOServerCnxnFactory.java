@@ -159,7 +159,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
      */
     private class AcceptThread extends AbstractSelectThread {
 
-        private final ServerSocketChannel acceptSocket;
+        private final ServerSocketChannel acceptSocket;//接收请求socket
         private final SelectionKey acceptKey;
         private final RateLogger acceptErrorLogger = new RateLogger(LOG);
         private final Collection<SelectorThread> selectorThreads;
@@ -176,6 +176,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
         public void run() {
             try {
+                //服务终止或者 socket关闭
                 while (!stopped && !acceptSocket.socket().isClosed()) {
                     try {
                         select();
@@ -252,6 +253,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
          * or not. If encounters an error attempts to fast close the socket.
          *
          * @return whether was able to accept a connection or not
+         * 接收请求
          */
         private boolean doAccept() {
             boolean accepted = false;
@@ -497,7 +499,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
             this.key = key;
             this.cnxn = (NIOServerCnxn) key.attachment();
         }
-
+       // 处理IO
         public void doWork() throws InterruptedException {
             if (!key.isValid()) {
                 selectorThread.cleanupSelectionKey(key);
@@ -719,6 +721,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
     @Override
     public void start() {
         stopped = false;
+        //构造工作线程池 ArrayList<ExecutorService> workers
         if (workerPool == null) {
             workerPool = new WorkerService("NIOWorker", numWorkerThreads, false);
         }

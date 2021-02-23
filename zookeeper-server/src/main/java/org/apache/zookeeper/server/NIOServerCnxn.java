@@ -319,6 +319,7 @@ public class NIOServerCnxn extends ServerCnxn {
 
     /**
      * Handles read/write IO on connection.
+     * 处理链接上的读写
      */
     void doIO(SelectionKey k) throws InterruptedException {
         try {
@@ -547,6 +548,7 @@ public class NIOServerCnxn extends ServerCnxn {
         if (len < 0 || len > BinaryInputArchive.maxBuffer) {
             throw new IOException("Len error " + len);
         }
+        //服务尚未运行
         if (!isZKServerRunning()) {
             throw new IOException("ZooKeeperServer not running");
         }
@@ -582,7 +584,7 @@ public class NIOServerCnxn extends ServerCnxn {
         disconnectReason = reason;
         close();
     }
-
+    //关闭 socket
     private void close() {
         setStale();
         if (!factory.removeCnxn(this)) {

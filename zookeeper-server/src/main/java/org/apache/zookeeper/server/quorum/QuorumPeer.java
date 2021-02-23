@@ -836,10 +836,12 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                         responseBuffer.putLong(myid);
                         Vote current = getCurrentVote();
                         switch (getPeerState()) {
+                            //正在寻找 leader
                         case LOOKING:
                             responseBuffer.putLong(current.getId());
                             responseBuffer.putLong(current.getZxid());
                             break;
+                            //是leader
                         case LEADING:
                             responseBuffer.putLong(myid);
                             try {
@@ -853,6 +855,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                                 // just ignore the request
                             }
                             break;
+                            //是 follower
                         case FOLLOWING:
                             responseBuffer.putLong(current.getId());
                             try {
@@ -862,6 +865,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                                 // just ignore the request
                             }
                             break;
+                            //是观察者
                         case OBSERVING:
                             // Do nothing, Observers keep themselves to
                             // themselves.
@@ -1127,7 +1131,9 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         if (!getView().containsKey(myid)) {
             throw new RuntimeException("My id " + myid + " not in the peer list");
         }
+        //加载数据 数据从磁盘 load到内存
         loadDataBase();
+        //启动服务工厂
         startServerCnxnFactory();
         try {
             adminServer.start();
@@ -1386,7 +1392,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     @Override
     public void run() {
         updateThreadName();
-
+         // thread run
         LOG.debug("Starting quorum peer");
         try {
             jmxQuorumBean = new QuorumBean(this);
@@ -1426,6 +1432,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                 }
 
                 switch (getPeerState()) {
+                    //未选出leader
                 case LOOKING:
                     LOG.info("LOOKING");
                     ServerMetrics.getMetrics().LOOKING_COUNT.add(1);
@@ -1464,6 +1471,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                                 shuttingDownLE = false;
                                 startLeaderElection();
                             }
+                            // 选出leader
                             setCurrentVote(makeLEStrategy().lookForLeader());
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);

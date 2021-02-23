@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
  * </ol>
  * In addition to the config file. There is a file in the data directory called
  * "myid" that contains the server id as an ASCII decimal value.
+ * server标识 myid
  *
  */
 @InterfaceAudience.Public
@@ -228,7 +229,8 @@ public class QuorumPeerMain {
 
             quorumPeer.start();
             ZKAuditProvider.addZKStartStopAuditLog();
-            quorumPeer.join();
+            // quorumPeer 继承 Thread
+            quorumPeer.join();//thread join
         } catch (InterruptedException e) {
             // warn, but generally this is ok
             LOG.warn("Quorum Peer interrupted", e);

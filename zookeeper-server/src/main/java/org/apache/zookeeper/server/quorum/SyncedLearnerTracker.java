@@ -49,9 +49,10 @@ public class SyncedLearnerTracker {
         }
         return true;
     }
-
+    //选票验证是否满足 过半机制
     public boolean hasAllQuorums() {
         for (QuorumVerifierAcksetPair qvAckset : qvAcksetPairs) {
+            //QuorumMaj.containsQuorum  (ackSet.size() > half);方法
             if (!qvAckset.getQuorumVerifier().containsQuorum(qvAckset.getAckset())) {
                 return false;
             }
