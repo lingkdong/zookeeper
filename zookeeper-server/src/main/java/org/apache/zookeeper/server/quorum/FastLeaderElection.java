@@ -1068,7 +1068,7 @@ public class FastLeaderElection implements Election {
                             //没有获取选票 说明leader已经选出了
                             if (n == null) {
                                 //更新服务 state 如果选中是自己更新成 leader 或者 更新成 learningState
-                                //learningState :ServerState.FOLLOWING and ServerState.OBSERVING
+                                //learningState 包括  FOLLOWING 和 OBSERVING
                                 //ServerState learningState()
                                 setPeerState(proposedLeader, voteSet);
                                 Vote endVote = new Vote(proposedLeader, proposedZxid, logicalclock.get(), proposedEpoch);
